@@ -96,7 +96,7 @@ for event in lp.listen():
                         message="Кажется вами не был соблюдён формат цитаты. Следите за оформлением, пригодится при сдаче ЕГЭ)")
                     raise OverflowError
                 quote = final[0]
-                user_id = final[1][3:final[1].find("|")]
+                user_id = final[-1][3:final[1].find("|")]
                 re = requests.get("https://api.vk.com/method/users.get", params={
                     "access_token": token,
                     "user_ids": user_id,
