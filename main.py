@@ -89,7 +89,14 @@ for event in lp.listen():
                 final = event.message.split("\n")
                 # print(final)
                 # print(event.message)
-                if len(final) < 2 or "@" not in event.message:
+                peers = requests.get("https://api.vk.com/method/messages.getConversationMembers", params={
+                    "access_token": token,
+                    "peer_id": event.peer_id,
+                    "v": 5.131
+                })
+                user_count = json.loads(peers.text)["response"]["count"]
+                print(user_count)
+                if (len(final) < 2 or "@" not in event.message) and user_count == 2:
                     session.get_api().messages.send(
                         random_id=0,
                         peer_id=event.peer_id,
@@ -128,7 +135,7 @@ for event in lp.listen():
             except OverflowError:
                 pass
             except:
-                print(f"\nError with a quote from {event.user_id}. Fix ASAP.")
+                print(f"\nError with a quote from {event.user_id}")
                 session.get_api().messages.send(
                         random_id=0,
                         peer_id=event.peer_id,
