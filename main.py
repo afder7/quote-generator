@@ -18,7 +18,7 @@ def add_text(text, name):
         # print(cur, i)
         cur += len(i) + 1
         re += i + " "
-        if cur >= 30:
+        if cur >= 27:
             re += "\n"
             cur = 0
     # print(re)
@@ -96,6 +96,10 @@ for event in lp.listen():
                 })
                 user_count = json.loads(peers.text)["response"]["count"]
                 print(user_count)
+                if len(final) > 2 and user_count > 2 and "#q" in event.message:
+                    final = final[1:]
+                if len(final) < 2 and user_count > 2:
+                    raise OverflowError
                 if (len(final) < 2 or "@" not in event.message) and user_count == 2:
                     session.get_api().messages.send(
                         random_id=0,
