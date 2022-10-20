@@ -95,15 +95,17 @@ for event in lp.listen():
                     "v": 5.131
                 })
                 user_count = json.loads(peers.text)["response"]["count"]
-                print(user_count)
+                # print(user_count, "#q" in event.message, len(final))
+                if len(final) < 3 and user_count > 2:
+                    raise OverflowError
+                if user_count > 2 and "#q" not in event.message:
+                    raise OverflowError
                 if len(final) > 2 and user_count > 2 and "#q" in event.message:
                     final = final[1:]
-                if len(final) < 2 and user_count > 2:
-                    raise OverflowError
                 if (len(final) < 2 or "@" not in event.message) and user_count == 2:
                     session.get_api().messages.send(
                         random_id=0,
-                        peer_id=event.peer_id,
+                        peer_id=event.chat_id,
                         message="Кажется вами не был соблюдён формат цитаты. Следите за оформлением, пригодится при сдаче ЕГЭ)")
                     raise OverflowError
                 quote = "\n".join(final[:-1])
@@ -134,7 +136,7 @@ for event in lp.listen():
 
                 session_app = vk_api.VkApi(token=app)
                 upload = VkUpload(session_app.get_api())
-                send_photo(session_app.get_api(), event.user_id, *upload_photo(upload, 'quote.png'))
+                send_photo(session_app.get_api(), event.peer_id_id, *upload_photo(upload, 'quote.png'))
                 # print("d", end=" ")
             except OverflowError:
                 pass
@@ -142,5 +144,5 @@ for event in lp.listen():
                 print(f"\nError with a quote from {event.user_id}")
                 session.get_api().messages.send(
                         random_id=0,
-                        peer_id=event.peer_id,
+                        peer_id=event.chat_id,
                         message="При генерации цитаты возникла непредвиденная ошибка или вами не был соблюдён формат цитаты. В скором времени мы решим проблему. Спасибо, что помогаете нам улучшать генератор, пока он находится в режиме тестирования!")
