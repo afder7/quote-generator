@@ -88,7 +88,9 @@ for event in lp.listen():
                 # print(event.user_id)
                 final = event.message.split("\n")
                 # print(final)
-                # print(event.message)
+                print(event.message)
+                print(event.raw)
+                # print(event.message_data, "dada")
                 peers = requests.get("https://api.vk.com/method/messages.getConversationMembers", params={
                     "access_token": token,
                     "peer_id": event.peer_id,
@@ -96,20 +98,35 @@ for event in lp.listen():
                 })
                 user_count = json.loads(peers.text)["response"]["count"]
                 # print(user_count, "#q" in event.message, len(final))
-                if len(final) < 3 and user_count > 2:
+                if (len(final) > 1 or "!цитата" not in event.message) and user_count > 2:
                     raise OverflowError
-                if user_count > 2 and "#q" not in event.message:
-                    raise OverflowError
-                if len(final) > 2 and user_count > 2 and "#q" in event.message:
-                    final = final[1:]
                 if (len(final) < 2 or "@" not in event.message) and user_count == 2:
                     session.get_api().messages.send(
                         random_id=0,
-                        peer_id=event.chat_id,
+                        peer_id=event.peer_id,
                         message="Кажется вами не был соблюдён формат цитаты. Следите за оформлением, пригодится при сдаче ЕГЭ)")
                     raise OverflowError
+                if user_count > 2 and "!цитата" in event.message:
+                    print("aga")
+                    if len(event.raw[7]):
+                        reply_id = event.raw[7]["reply"]
+                        reply_id = int(reply_id[reply_id.find(":") + 1:-1])
+                        print(reply_id)
+                        print(event.peer_id)
+                        re = requests.get("https://api.vk.com/method/messages.getById", params={
+                            "access_token": token,
+                            "message_ids": reply_id,
+                            "conversation_message_id": event.peer_id,
+                            "v": 5.131
+                        })
+                        user_id = json.loads(re.text)["response"]["items"][0]["from_id"]
+                        print(user_id)
+                        print(json.loads(re.text))
+                    else:
+                        raise OverflowError
+                else:
+                    user_id = final[-1][3:final[-1].find("|")]
                 quote = "\n".join(final[:-1])
-                user_id = final[-1][3:final[-1].find("|")]
                 re = requests.get("https://api.vk.com/method/users.get", params={
                     "access_token": token,
                     "user_ids": user_id,
@@ -136,13 +153,13 @@ for event in lp.listen():
 
                 session_app = vk_api.VkApi(token=app)
                 upload = VkUpload(session_app.get_api())
-                send_photo(session_app.get_api(), event.peer_id_id, *upload_photo(upload, 'quote.png'))
+                send_photo(session_app.get_api(), event.peer_id, *upload_photo(upload, 'quote.png'))
                 # print("d", end=" ")
             except OverflowError:
                 pass
             except:
-                print(f"\nError with a quote from {event.user_id}")
+                print(f"Error with a quote from {event.user_id}")
                 session.get_api().messages.send(
                         random_id=0,
-                        peer_id=event.chat_id,
+                        peer_id=event.peer_id,
                         message="При генерации цитаты возникла непредвиденная ошибка или вами не был соблюдён формат цитаты. В скором времени мы решим проблему. Спасибо, что помогаете нам улучшать генератор, пока он находится в режиме тестирования!")
